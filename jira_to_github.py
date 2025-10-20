@@ -34,9 +34,7 @@ FIELDS = {
 OPTION_IDS = {
     "Status": {
         "Backlog": "f75ad846",
-        "Ready": "61e4505c",
         "In progress": "47fc9ee4",
-        "In review": "df73e18b",
         "Done": "98236657"
     },
     "Priority": {
@@ -92,9 +90,12 @@ def update_project_field(item_id, field_id, value):
     return run_graphql(query, variables)
 
 def map_option(field_name, option_name):
-    option_id = OPTION_IDS.get(field_name, {}).get(option_name)
-    if option_id:
-        return {"singleSelectOptionId": option_id}
+    if not option_name:
+        return None
+    option_name_clean = option_name.strip().lower()  # boşlukları sil, küçük harfe çevir
+    for name, oid in OPTION_IDS.get(field_name, {}).items():
+        if name.lower() == option_name_clean:
+            return {"singleSelectOptionId": oid}
     return None
 
 def parse_date(date_str):
@@ -143,11 +144,16 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
 {description or "_Açıklama bulunmuyor_"}"""
 
         # GitHub Issue oluştur
-        data = {"title": title, "body": body}
+        data = {
+            "title": title,
+            "body": body,             # body hâlâ tüm açıklamayı içeriyor
+            "labels": [jira_key]      # sadece Jira issue key’i label olarak eklendi
+        }
         if assignee_github:
             data["assignees"] = [assignee_github]
 
         r = requests.post(f"https://api.github.com/repos/{REPO}/issues", headers=HEADERS, json=data)
+
         if r.status_code != 201:
             print(f"⚠️ {i}. {title} → Hata ({r.status_code}): {r.text}")
             continue
