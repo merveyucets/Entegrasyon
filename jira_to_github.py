@@ -122,10 +122,12 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         estimate = row.get("Story Points") or None
         assignee_jira = row.get("Assignee")
         assignee_github = ASSIGNEE_MAP.get(assignee_jira)
-        start_date = parse_date(row.get("Start Date") or "")
+        start_date = parse_date(row.get("Custom field (Start date)") or "")
         end_date = parse_date(row.get("Due date") or "")
         
-        print(f"Row {i} - Raw Due Date: {repr(row.get('Due Date'))}")
+        print(f"Row {i} - Raw Start Date: {repr(row.get('Custom field (Start date)'))}")
+        print(f"Row {i} - Parsed Start Date: {start_date}")
+        print(f"Row {i} - Raw Due Date: {repr(row.get('Due date'))}")
         print(f"Row {i} - Parsed End Date: {end_date}")
  
         size = row.get("Size")
