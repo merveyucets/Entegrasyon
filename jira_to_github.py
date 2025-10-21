@@ -38,10 +38,11 @@ OPTION_IDS = {
         "Çözülmüş": "98236657"
     },
     "Priority": {
-        "Lowest": "79628723",
-        "Low": "0a877460",
-        "Medium": "da944a9c",
-        "Highest": "ac7add12"
+        "Düşük": "3e4df051",
+        "Kritik": "da944a9c",
+        "Majör": "79628723",
+        "Ölümcül": "ac7add12",
+        "Minör": "0a877460"
     },
     "Milestone": {
         # Örnek: "Sprint 1": "xxx"
@@ -124,11 +125,11 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         assignee_jira = row.get("Assignee")
         assignee_github = ASSIGNEE_MAP.get(assignee_jira)
         start_date = parse_date(row.get("Custom field (Start date)") or "")
-        end_date = parse_date(row.get("Due date") or "")
+        end_date = parse_date(row.get("Due Date") or "")
         
         print(f"Row {i} - Raw Start Date: {repr(row.get('Custom field (Start date)'))}")
         print(f"Row {i} - Parsed Start Date: {start_date}")
-        print(f"Row {i} - Raw Due Date: {repr(row.get('Due date'))}")
+        print(f"Row {i} - Raw Due Date: {repr(row.get('Due Date'))}")
         print(f"Row {i} - Parsed End Date: {end_date}")
  
         size = row.get("Size")
