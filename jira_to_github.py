@@ -2,9 +2,9 @@ import csv
 import requests
 import os
 from datetime import datetime
+from dateutil import parser
 from dotenv import load_dotenv
 load_dotenv()  # .env dosyasını oku
-
 
 # --------------- AYARLAR ----------------
 
@@ -21,10 +21,10 @@ PROJECT_ID = "PVT_kwHOB0hXU84BFtV0"
 FIELDS = {
     "Status": "PVTSSF_lAHOB0hXU84BFtV0zg296Bw",
     "Priority": "PVTSSF_lAHOB0hXU84BFtV0zg296Dg",
-    "Estimate": "PVTSSF_ESTIMATE_ID",      # kendi field id’si ile değiştir
-    "StartDate": "PVTSSF_STARTDATE_ID",
-    "EndDate": "PVTSSF_ENDDATE_ID",
-    "Size": "PVTSSF_SIZE_ID",
+    "Estimate": "PVTF_lAHOB0hXU84BFtV0zg296Do",
+    "StartDate": "PVTF_lAHOB0hXU84BFtV0zg296Ds",
+    "EndDate": "PVTF_lAHOB0hXU84BFtV0zg296Dw",
+    "Size": "PVTF_lAHOB0hXU84BFtV0zg2-DjI",
     "Milestone": "PVTSSF_MILESTONE_ID",
     "Development": "PVTSSF_DEVELOPMENT_ID",
     "Assignee": "PVTSSF_ASSIGNEE_ID"
@@ -42,13 +42,16 @@ OPTION_IDS = {
         "Low": "0a877460",
         "Medium": "da944a9c",
         "Highest": "ac7add12"
+    },
+    "Milestone": {
+        # Örnek: "Sprint 1": "xxx"
     }
 }
 
 # Jira kullanıcı adlarını GitHub kullanıcı adlarına eşleme
 ASSIGNEE_MAP = {
-    "Affan B.": "affanbaykar",
-    "myucetass99": "merveyucets"
+    "affan.bugra.ozaytas": "affanbaykar",
+    "merve.yucetas" : "merveyucets"
     # gerekiyorsa diğer kullanıcıları ekle
 }
 
@@ -65,16 +68,13 @@ def add_item_to_project(issue_node_id):
     query = """
     mutation($projectId: ID!, $contentId: ID!) {
       addProjectV2ItemById(input:{projectId:$projectId, contentId:$contentId}) {
-        item {
-          id
-        }
+        item { id }
       }
     }
     """
     variables = {"projectId": PROJECT_ID, "contentId": issue_node_id}
     result = run_graphql(query, variables)
-    print("GraphQL addProjectV2ItemById result:", result)  # <- burayı ekle
-    if result:
+    if result and result.get("data"):
         return result["data"]["addProjectV2ItemById"]["item"]["id"]
     return None
 
@@ -82,20 +82,11 @@ def update_project_field(item_id, field_id, value):
     query = """
     mutation($input: UpdateProjectV2ItemFieldValueInput!) {
       updateProjectV2ItemFieldValue(input: $input) {
-        projectV2Item {
-          id
-        }
+        projectV2Item { id }
       }
     }
     """
-    variables = {
-        "input": {
-            "projectId": PROJECT_ID,
-            "itemId": item_id,
-            "fieldId": field_id,
-            "value": value
-        }
-    }
+    variables = {"input": {"projectId": PROJECT_ID, "itemId": item_id, "fieldId": field_id, "value": value}}
     return run_graphql(query, variables)
 
 def map_option(field_name, option_name):
@@ -106,6 +97,18 @@ def map_option(field_name, option_name):
         if name.lower() == option_name_clean:
             return {"singleSelectOptionId": oid}
     return None
+
+def parse_date(date_str):
+    try:
+        date_str = date_str.strip()  # Boşlukları temizle
+        if not date_str:
+            return None
+        dt = parser.parse(date_str)  # Otomatik format çözümü
+        return dt.strftime("%Y-%m-%d")
+    except Exception as e:
+        print(f"❌ parse_date hatası: '{date_str}' -> {e}")
+        return None
+
 
 
 # --------------- CSV OKUMA VE ISSUE OLUŞTURMA ----------------
@@ -120,7 +123,18 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         estimate = row.get("Story Points") or None
         assignee_jira = row.get("Assignee")
         assignee_github = ASSIGNEE_MAP.get(assignee_jira)
+        start_date = parse_date(row.get("Custom field (Start date)") or "")
+        end_date = parse_date(row.get("Due date") or "")
         
+        print(f"Row {i} - Raw Start Date: {repr(row.get('Custom field (Start date)'))}")
+        print(f"Row {i} - Parsed Start Date: {start_date}")
+        print(f"Row {i} - Raw Due Date: {repr(row.get('Due date'))}")
+        print(f"Row {i} - Parsed End Date: {end_date}")
+ 
+        size = row.get("Size")
+        milestone = row.get("Milestone")
+        development = row.get("Development")
+
         # Issue body
         body = f"""### 🧩 Jira Bilgileri
 **Jira Issue Key:** {jira_key}  
@@ -157,19 +171,27 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         print(f"    → Project item ID: {item_id}")
 
         # Alanları güncelle
-        # Status
-        status_value = map_option("Status", status)
-        if status_value:
-            update_project_field(item_id, FIELDS["Status"], status_value)
-        # Priority
-        priority_value = map_option("Priority", priority)
-        if priority_value:
-            update_project_field(item_id, FIELDS["Priority"], priority_value)
-        # Estimate (number)
+        if map_option("Status", status):
+            update_project_field(item_id, FIELDS["Status"], map_option("Status", status))
+        if map_option("Priority", priority):
+            update_project_field(item_id, FIELDS["Priority"], map_option("Priority", priority))
         if estimate:
             update_project_field(item_id, FIELDS["Estimate"], {"number": float(estimate)})
-        # Assignee
+        if start_date:
+            result = update_project_field(item_id, FIELDS["StartDate"], {"date": start_date})
+            print(f"    → StartDate update result: {result}")  # Bu satır response'u gösterecek
+
+        if end_date:
+            result = update_project_field(item_id, FIELDS["EndDate"], {"date": end_date})
+            print(f"    → EndDate update result: {result}")  # Bu da EndDate response
+        if size:
+            update_project_field(item_id, FIELDS["Size"], {"number": float(size)})
+        if milestone and map_option("Milestone", milestone):
+            update_project_field(item_id, FIELDS["Milestone"], map_option("Milestone", milestone))
+        if development:
+            update_project_field(item_id, FIELDS["Development"], {"text": development})
         if assignee_github:
+            # Assignee Project alanı için singleSelectOptionId yerine GitHub username ile atama
             update_project_field(item_id, FIELDS["Assignee"], {"singleSelectOptionId": assignee_github})
-        # Not: diğer alanlar (StartDate, EndDate, Size, Milestone, Development) aynı mantıkla eklenebilir
+
         print(f"    → {title} Project alanları güncellendi.\n")
