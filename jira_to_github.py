@@ -145,11 +145,34 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         # Issue body
         body = f"""{description or "_Açıklama bulunmuyor_"}"""
 
+        # --- SABİT VE CSV LABEL'LARINI TOPLA ---
+        csv_labels = []
+
+        with open("jira_export_all.csv", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            headers = next(reader)  # İlk satır, sütun isimleri
+            # Labels sütunlarının indexlerini bul
+            label_indexes = [i for i, h in enumerate(headers) if h == "Labels"]
+
+            for row in reader:
+                csv_labels = []
+                for idx in label_indexes:
+                    val = row[idx].strip()
+                    if val:
+                        csv_labels.append(val)
+
+        labels = [jira_key, project_name, issue_type, security_level]
+
+        for i in csv_labels:
+            labels.append(i)
+
+        print(labels)
+
         # GitHub Issue oluştur
         data = {
             "title": title,
             "body": body,            
-            "labels": [jira_key,project_name,issue_type,security_level]    
+            "labels": labels
         }
         if assignee_github:
             data["assignees"] = [assignee_github]
