@@ -27,7 +27,8 @@ FIELDS = {
     "Size": "PVTF_lAHOB0hXU84BFtV0zg2-DjI",
     "Milestone": "PVTSSF_MILESTONE_ID",
     "Development": "PVTSSF_DEVELOPMENT_ID",
-    "Assignee": "PVTSSF_ASSIGNEE_ID"
+    "Assignee": "PVTSSF_ASSIGNEE_ID",
+    "Reporter": "PVTF_lAHOB0hXU84BFtV0zg3NtVs"
 }
 
 # Option id eşleşmeleri
@@ -124,6 +125,8 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         estimate = row.get("Story Points") or None
         assignee_jira = row.get("Assignee")
         assignee_github = ASSIGNEE_MAP.get(assignee_jira)
+        reporter_jira = row.get("Reporter")
+        reporter_github = ASSIGNEE_MAP.get(reporter_jira)
         start_date = parse_date(row.get("Custom field (Start date)") or "")
         end_date = parse_date(row.get("Due Date") or "")
         
@@ -194,5 +197,9 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         if assignee_github:
             # Assignee Project alanı için singleSelectOptionId yerine GitHub username ile atama
             update_project_field(item_id, FIELDS["Assignee"], {"singleSelectOptionId": assignee_github})
+        if reporter_github:
+            update_project_field(item_id, FIELDS["Reporter"], {"text": reporter_github})
+
+
 
         print(f"    → {title} Project alanları güncellendi.\n")
