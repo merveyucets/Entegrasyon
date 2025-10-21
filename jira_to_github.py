@@ -33,9 +33,9 @@ FIELDS = {
 # Option id eşleşmeleri
 OPTION_IDS = {
     "Status": {
-        "Backlog": "f75ad846",
-        "In progress": "47fc9ee4",
-        "Done": "98236657"
+        "Başlanmamış": "f75ad846",
+        "Devam": "47fc9ee4",
+        "Çözülmüş": "98236657"
     },
     "Priority": {
         "Lowest": "79628723",
