@@ -148,8 +148,8 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         # GitHub Issue oluştur
         data = {
             "title": title,
-            "body": body,             # body hâlâ tüm açıklamayı içeriyor
-            "labels": [jira_key,project_name,issue_type,security_level]      # sadece Jira issue key’i label olarak eklendi
+            "body": body,            
+            "labels": [jira_key,project_name,issue_type,security_level]    
         }
         if assignee_github:
             data["assignees"] = [assignee_github]
