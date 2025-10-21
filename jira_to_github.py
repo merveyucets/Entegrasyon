@@ -52,8 +52,8 @@ OPTION_IDS = {
 
 # Jira kullanıcı adlarını GitHub kullanıcı adlarına eşleme
 ASSIGNEE_MAP = {
-    "Affan B.": "affanbaykar",
-    "myucetass99" : "merveyucets"
+    "affan.bugra.ozaytas": "affanbaykar",
+    "merve.yucetas" : "merveyucets"
     # gerekiyorsa diğer kullanıcıları ekle
 }
 
