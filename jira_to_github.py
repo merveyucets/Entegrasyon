@@ -43,10 +43,10 @@ OPTION_IDS = {
         "Çözülmüş": "98236657"
     },
     "Priority": {
-        "Düşük": "3e4df051",
+        "Ölümcül": "ac7add12",
         "Kritik": "da944a9c",
         "Majör": "79628723",
-        "Ölümcül": "ac7add12",
+        "Düşük": "3e4df051",
         "Minör": "0a877460"
     },
     "Milestone": {
@@ -160,6 +160,9 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         title = (row.get("Summary") or 'Untitled').strip()
         description = (row.get("Description") or '').strip()
         jira_key = row.get("Issue key", "N/A")
+        project_name = row.get("Project name", "N/A")
+        issue_type = row.get("Issue Type", "N/A")
+        security_level = row.get("Security Level", "N/A")
         status = row.get("Status", "Backlog")
         priority = (row.get("Priority") or "Medium").capitalize()
         estimate = row.get("Story Points") or None
@@ -185,20 +188,13 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         development = row.get("Development")
 
         # Issue body
-        body = f"""### 🧩 Jira Bilgileri
-**Jira Issue Key:** {jira_key}  
-**Status:** {status}  
-**Priority:** {priority}  
-**Estimate:** {estimate}  
-
-### 📝 Açıklama:
-{description or "_Açıklama bulunmuyor_"}"""
+        body = f"""{description or "_Açıklama bulunmuyor_"}"""
 
         # GitHub Issue oluştur
         data = {
             "title": title,
-            "body": body,             # body hâlâ tüm açıklamayı içeriyor
-            "labels": [jira_key]      # sadece Jira issue key’i label olarak eklendi
+            "body": body,            
+            "labels": [jira_key,project_name,issue_type,security_level]    
         }
         if assignee_github:
             data["assignees"] = [assignee_github]
