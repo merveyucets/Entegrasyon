@@ -6,6 +6,7 @@ from dateutil import parser
 from dotenv import load_dotenv
 load_dotenv()  # .env dosyasını oku
 
+
 # --------------- AYARLAR ----------------
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -149,10 +150,6 @@ def seconds_to_duration(sec):
 
 
 
-
-
-
-
 # --------------- CSV OKUMA VE ISSUE OLUŞTURMA ----------------
 with open("jira_export_all.csv", encoding="utf-8") as f:
     reader = csv.DictReader(f)
@@ -176,13 +173,6 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         reporter_github = ASSIGNEE_MAP.get(reporter_jira)
         start_date = parse_date(row.get("Custom field (Start date)") or "")
         end_date = parse_date(row.get("Due Date") or "")
-        
-        
-        print(f"Row {i} - Raw Start Date: {repr(row.get('Custom field (Start date)'))}")
-        print(f"Row {i} - Parsed Start Date: {start_date}")
-        print(f"Row {i} - Raw Due Date: {repr(row.get('Due Date'))}")
-        print(f"Row {i} - Parsed End Date: {end_date}")
- 
         size = row.get("Size")
         milestone = row.get("Milestone")
         development = row.get("Development")
@@ -210,8 +200,7 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
 
         for i in csv_labels:
             labels.append(i)
-
-        print(labels)
+        print(f"\nLabels: {labels}")
 
         # GitHub Issue oluştur
         data = {
@@ -229,14 +218,13 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
             continue
         
         issue_node_id = r.json()["node_id"]
-        print(f"✅ {i}. {title} → Issue başarıyla oluşturuldu.")
+        print(f"✅ {title} → Issue başarıyla oluşturuldu.")
 
         # ProjectV2 item ekle
         item_id = add_item_to_project(issue_node_id)
         if not item_id:
             print(f"⚠️ {i}. {title} → ProjectV2 item eklenemedi.")
             continue
-        print(f"    → Project item ID: {item_id}")
 
         # Alanları güncelle
         if map_option("Status", status):
@@ -254,15 +242,12 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         if time_spent:
             duration = seconds_to_duration(time_spent)
             update_project_field(item_id, FIELDS["Time Spent"], {"text":  duration})
-        
         if start_date:
             result = update_project_field(item_id, FIELDS["StartDate"], {"date": start_date})
-            print(f"    → StartDate update result: {result}")  # Bu satır response'u gösterecek
         if work_ratio:
             update_project_field(item_id, FIELDS["Work Ratio"], {"text": work_ratio})
         if end_date:
             result = update_project_field(item_id, FIELDS["EndDate"], {"date": end_date})
-            print(f"    → EndDate update result: {result}")  # Bu da EndDate response
         if size:
             update_project_field(item_id, FIELDS["Size"], {"number": float(size)})
         if milestone and map_option("Milestone", milestone):
@@ -275,6 +260,4 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         if reporter_github:
             update_project_field(item_id, FIELDS["Reporter"], {"text": reporter_github})
 
-
-
-        print(f"    → {title} Project alanları güncellendi.\n")
+        print(f"✅ {title} Issue verileri güncellendi.\n")
