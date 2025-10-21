@@ -121,6 +121,7 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         description = (row.get("Description") or '').strip()
         jira_key = row.get("Issue key", "N/A")
         project_name = row.get("Project name", "N/A")
+        issue_type = row.get("Issue Type", "N/A")
         status = row.get("Status", "Backlog")
         priority = (row.get("Priority") or "Medium").capitalize()
         estimate = row.get("Story Points") or None
@@ -141,15 +142,13 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         development = row.get("Development")
 
         # Issue body
-        body = f"""
-### 📝 Açıklama:
-{description or "_Açıklama bulunmuyor_"}"""
+        body = f"""{description or "_Açıklama bulunmuyor_"}"""
 
         # GitHub Issue oluştur
         data = {
             "title": title,
             "body": body,             # body hâlâ tüm açıklamayı içeriyor
-            "labels": [jira_key,project_name]      # sadece Jira issue key’i label olarak eklendi
+            "labels": [jira_key,project_name,issue_type]      # sadece Jira issue key’i label olarak eklendi
         }
         if assignee_github:
             data["assignees"] = [assignee_github]
