@@ -39,10 +39,10 @@ OPTION_IDS = {
         "Çözülmüş": "98236657"
     },
     "Priority": {
-        "Düşük": "3e4df051",
+        "Ölümcül": "ac7add12",
         "Kritik": "da944a9c",
         "Majör": "79628723",
-        "Ölümcül": "ac7add12",
+        "Düşük": "3e4df051",
         "Minör": "0a877460"
     },
     "Milestone": {
@@ -122,6 +122,7 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         jira_key = row.get("Issue key", "N/A")
         project_name = row.get("Project name", "N/A")
         issue_type = row.get("Issue Type", "N/A")
+        security_level = row.get("Security Level", "N/A")
         status = row.get("Status", "Backlog")
         priority = (row.get("Priority") or "Medium").capitalize()
         estimate = row.get("Story Points") or None
@@ -148,7 +149,7 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
         data = {
             "title": title,
             "body": body,             # body hâlâ tüm açıklamayı içeriyor
-            "labels": [jira_key,project_name,issue_type]      # sadece Jira issue key’i label olarak eklendi
+            "labels": [jira_key,project_name,issue_type,security_level]      # sadece Jira issue key’i label olarak eklendi
         }
         if assignee_github:
             data["assignees"] = [assignee_github]
