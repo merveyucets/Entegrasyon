@@ -196,7 +196,11 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
                     if val:
                         csv_labels.append(val)
 
-        labels = [jira_key, project_name, issue_type, security_level]
+        labels = []
+        for val in [jira_key, project_name, issue_type, security_level]:
+            if val and val.strip():
+                labels.append(val)
+
 
         for i in csv_labels:
             labels.append(i)
@@ -261,3 +265,5 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
             update_project_field(item_id, FIELDS["Reporter"], {"text": reporter_github})
 
         print(f"✅ {title} Issue verileri güncellendi.\n")
+
+#affan
