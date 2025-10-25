@@ -206,7 +206,8 @@ with open("jira_export_all.csv", encoding="utf-8") as f:
                     if val:
                         csv_labels.append(val)
 
-        labels = [jira_key, project_name, issue_type, security_level]
+        labels = [lbl for lbl in [jira_key, project_name, issue_type, security_level] if lbl and lbl.strip()]
+
 
         for i in csv_labels:
             labels.append(i)
